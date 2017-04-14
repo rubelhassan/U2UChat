@@ -1,23 +1,34 @@
 package com.example.rubel.u2uchat;
 
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.rubel.u2uchat.Util.AppUtils;
-import com.example.rubel.u2uchat.adapter.FriendsAdapter;
-import com.example.rubel.u2uchat.model.Friend;
+import com.example.rubel.u2uchat.adapter.FeaturesPagerAdapter;
+import com.example.rubel.u2uchat.fragments.ChatFragment;
+import com.example.rubel.u2uchat.fragments.ContactsFragment;
+import com.example.rubel.u2uchat.fragments.GroupsFragment;
+import com.example.rubel.u2uchat.fragments.SearchUserFragment;
+import com.example.rubel.u2uchat.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,51 +40,47 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_PHOTO_PICKER = 101;
     private static final int REQUEST_SIGN_IN = 102;
     private static final int PERMISSION_READ_EXTERNAL_STORAGE = 103;
-    private static final String ANONYMOUS = "anonymous";
 
     // UI elements
-    RecyclerView mRecyclerViewFriends;
-    FriendsAdapter mAdapterFriends;
-    List<Friend> mListFriends;
-    ProgressBar mProgressBar;
+    DrawerLayout mDrawerLayout;
+    NavigationView mNavigationView;
+    ViewPager mViewPager;
+    TabLayout mTabLayout;
+    Toolbar mToolbar;
 
-    //Firebase API Clients
+    // Firebase API Clients
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mFirebaseDatabaseReference;
-    private ChildEventListener mChildEventListener;
     private FirebaseStorage mFirebaseStorage;
     private StorageReference mPhotoStorageReference;
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mFirebaseAuthStateListener;
     private FirebaseUser mFirebaseUser;
 
-    private String mUser;
-    private boolean mProgress;
+    private String mAuthProvider;
 
+    private List<Fragment> appFragments;
+
+    private User mAppUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (!AppUtils.isConnectedToIntenet(this)) {
-            Toast.makeText(this, "No intenet connection!", Toast.LENGTH_LONG).show();
-            finish();
-        }
+        mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        mToolbar.setTitle("U2U Chat");
+        setSupportActionBar(mToolbar);
 
-        initViews();
+        checkInternetConnection();
 
-        mProgress = true;
-        mUser = ANONYMOUS;
-
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseUser = mFirebaseAuth.getCurrentUser();
+        initFirebaseAuthAndUser();
 
         verifyLoginUser();
 
@@ -81,38 +88,30 @@ public class MainActivity extends AppCompatActivity {
 
         checkFirstTimeLogin();
 
-        initializeAndSetAuthStateListener();
-
-        attachDatabaseListener();
+        initAuthStateListener();
 
         makeUserOnline();
+
+        setupNavigationView();
+
+        setupTabsAndPagers();
     }
 
-    private void initFirebaseDatabaseAndStorage() {
-        mFirebaseDatabase = FirebaseDatabase.getInstance();
-        mFirebaseDatabaseReference = mFirebaseDatabase.getReference().child("users");
-        mFirebaseStorage = FirebaseStorage.getInstance();
-        mPhotoStorageReference = mFirebaseStorage.getReference().child("user_photos");
+    private void checkInternetConnection() {
+        if (!AppUtils.isConnectedToIntenet(this)) {
+            Toast.makeText(this, "No intenet connection!", Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
-    private void checkFirstTimeLogin() {
-        DatabaseReference child = mFirebaseDatabaseReference.child(mFirebaseUser.getUid() + "/");
+    private void initFirebaseAuthAndUser() {
+        mAppUser = null;
 
-        child.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    startActivity(new Intent(MainActivity.this, FirstTimeLoginActivity.class));
-                    finish();
-                }
-            }
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mFirebaseUser = mFirebaseAuth.getCurrentUser();
+        mAuthProvider = mFirebaseUser.getProviderData().get(0).toString();
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
+        Log.i("PROVIDER:", mAuthProvider);
     }
 
     private void verifyLoginUser() {
@@ -122,103 +121,136 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initViews() {
-        mListFriends = new ArrayList<>();
-        mRecyclerViewFriends = (RecyclerView) findViewById(R.id.recycler_view_friends_main);
-        mAdapterFriends = new FriendsAdapter(mListFriends, this);
-        mRecyclerViewFriends.setAdapter(mAdapterFriends);
-        mRecyclerViewFriends.setLayoutManager(new LinearLayoutManager(this));
-        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_main);
-        mProgressBar.setVisibility(View.VISIBLE);
+    // initialize firebase database and storage clients
+    private void initFirebaseDatabaseAndStorage() {
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mFirebaseDatabaseReference = mFirebaseDatabase.getReference().child("users")
+                .child(mFirebaseUser.getUid() + "/");
+        mFirebaseStorage = FirebaseStorage.getInstance();
+        mPhotoStorageReference = mFirebaseStorage.getReference().child("user_photos");
     }
 
+    // check if user has a profile or not then create new one or set profile
+    private void checkFirstTimeLogin() {
+        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    startActivity(new Intent(MainActivity.this, FirstTimeLoginActivity.class));
+                    finish();
+                } else {
+                    setAppUser(dataSnapshot);
+                }
+            }
 
-    private void initializeAndSetAuthStateListener() {
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void initAuthStateListener() {
         mFirebaseAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 mFirebaseUser = firebaseAuth.getCurrentUser();
                 if (mFirebaseUser == null) {
-                    onSignedOutClenup();
                     startActivity(new Intent(MainActivity.this, SignInActivity.class));
                     finish();
-                } else {
-                    onSignedInInit(mFirebaseUser.getDisplayName());
                 }
             }
         };
-
-        mFirebaseAuth.addAuthStateListener(mFirebaseAuthStateListener);
-
     }
 
-
-    private void onSignedInInit(String displayName) {
-        mUser = displayName;
+    private void setupTabsAndPagers() {
+        mViewPager = (ViewPager) findViewById(R.id.view_pager_main);
+        mTabLayout = (TabLayout) findViewById(R.id.tab_layout_main);
+        initializeFragments();
+        FeaturesPagerAdapter adapter = new FeaturesPagerAdapter(getSupportFragmentManager(),
+                this.appFragments);
+        mViewPager.setAdapter(adapter);
+        mTabLayout.setupWithViewPager(mViewPager);
+        addIconsToTab();
     }
 
-    private void onSignedOutClenup() {
-        mUser = ANONYMOUS;
-        mListFriends.clear();
-        mAdapterFriends.notifyDataSetChanged();
-        detachDatabaseListener();
-    }
+    private void addIconsToTab() {
+        mTabLayout.getTabAt(0).setIcon(R.drawable.account_search);
+        mTabLayout.getTabAt(1).setIcon(R.drawable.wechat);
+        mTabLayout.getTabAt(2).setIcon(R.drawable.account);
+        mTabLayout.getTabAt(3).setIcon(R.drawable.ic_group);
 
-    private void attachDatabaseListener() {
-        if (mChildEventListener == null) {
-            mChildEventListener = new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    if (mProgress) {
-                        mProgress = false;
-                        mProgressBar.setVisibility(View.GONE);
-                    }
-                    Friend friend = new Friend(
-                            dataSnapshot.child("userName").getValue().toString(),
-                            dataSnapshot.child("photoUrl").getValue().toString(),
-                            dataSnapshot.child("isOnline").getValue().toString().equals("true"));
-                    mListFriends.add(friend);
-                    mAdapterFriends.notifyDataSetChanged();
-                }
+        final int tabColor = ContextCompat.getColor(this, R.color.tabColor);
+        final int selectedColor = ContextCompat.getColor(this, R.color.colorAccent);
 
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        mTabLayout.getTabAt(0).getIcon().setColorFilter(selectedColor, PorterDuff.Mode.SRC_IN);
+        mTabLayout.getTabAt(1).getIcon().setColorFilter(tabColor, PorterDuff.Mode.SRC_IN);
+        mTabLayout.getTabAt(2).getIcon().setColorFilter(tabColor, PorterDuff.Mode.SRC_IN);
+        mTabLayout.getTabAt(3).getIcon().setColorFilter(tabColor, PorterDuff.Mode.SRC_IN);
 
-                }
-
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                }
-
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            };
+        for (int i = 0; i < mTabLayout.getTabCount(); i++) {
+            mTabLayout.getTabAt(i).setCustomView(R.layout.view_tab);
         }
 
-        mFirebaseDatabaseReference.addChildEventListener(mChildEventListener);
+        mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                tab.getIcon().setColorFilter(selectedColor, PorterDuff.Mode.SRC_IN);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                tab.getIcon().setColorFilter(tabColor, PorterDuff.Mode.SRC_IN);
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
     }
 
-    private void detachDatabaseListener() {
-        if (mChildEventListener != null)
-            mFirebaseDatabaseReference.removeEventListener(mChildEventListener);
+    private void setupNavigationView() {
+        mNavigationView = (NavigationView) findViewById(R.id.nav_view_main);
+        mNavigationView.setNavigationItemSelectedListener(this);
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout_main);
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                mToolbar, R.string.drawer_open, R.string.drawer_close);
+        mDrawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.syncState();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mFirebaseAuth != null)
-            mFirebaseAuth.removeAuthStateListener(mFirebaseAuthStateListener);
-        mListFriends.clear();
-        mAdapterFriends.notifyDataSetChanged();
-        detachDatabaseListener();
+    private void initializeFragments() {
+        appFragments = new ArrayList<>();
+        appFragments.add(new SearchUserFragment());
+        appFragments.add(new ChatFragment());
+        appFragments.add(new ContactsFragment());
+        appFragments.add(new GroupsFragment());
+    }
+
+    private void setAppUserProfile() {
+        if (mAppUser == null)
+            return;
+
+        View header = mNavigationView.getHeaderView(0);
+        TextView tvUserFullName = (TextView) header.findViewById(R.id.text_view_name_main);
+        TextView tvUserEmail = (TextView) header.findViewById(R.id.text_view_email_main);
+        tvUserFullName.setText(mAppUser.getFullName());
+        tvUserEmail.setText(mAppUser.getEmail());
+    }
+
+    private void setAppUser(DataSnapshot dataSnapshot) {
+        String userName = dataSnapshot.child("userName").getValue().toString();
+        String email = dataSnapshot.child("email").getValue().toString();
+        String fullName = dataSnapshot.child("fullName").getValue().toString();
+        String uid = dataSnapshot.child("uid").getValue().toString();
+        String photoUrl = dataSnapshot.child("photoUrl").getValue().toString();
+        boolean isOnline = dataSnapshot.child("isOnline").getValue().toString().equals("true");
+
+        mAppUser = new User(userName, email, fullName, uid, photoUrl, isOnline);
+
+        setAppUserProfile();
     }
 
     @Override
@@ -238,20 +270,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void makeUserOffline() {
-        mFirebaseDatabaseReference.child(mFirebaseUser.getUid()).child("isOnline").setValue(false);
+        mFirebaseDatabaseReference.child("isOnline").setValue(false);
     }
 
     private void makeUserOnline() {
-        mFirebaseDatabaseReference.child(mFirebaseUser.getUid()).child("isOnline").setValue(true);
+        mFirebaseDatabaseReference.child("isOnline").setValue(true);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
+        mFirebaseAuth.addAuthStateListener(mFirebaseAuthStateListener);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (mFirebaseAuth != null)
+            mFirebaseAuth.removeAuthStateListener(mFirebaseAuthStateListener);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 }
