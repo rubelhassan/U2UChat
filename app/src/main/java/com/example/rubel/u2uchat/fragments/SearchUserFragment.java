@@ -1,18 +1,23 @@
 package com.example.rubel.u2uchat.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.rubel.u2uchat.R;
-import com.example.rubel.u2uchat.adapter.FriendsAdapter;
-import com.example.rubel.u2uchat.model.Friend;
+import com.example.rubel.u2uchat.UserProfileActivity;
+import com.example.rubel.u2uchat.Util.AppConstants;
+import com.example.rubel.u2uchat.adapter.SearchListAdapter;
+import com.example.rubel.u2uchat.model.User;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,8 +33,8 @@ import java.util.List;
 
 public class SearchUserFragment extends Fragment {
 
-    FriendsAdapter mFriendsAdapter;
-    List<Friend> mFriendsList;
+    SearchListAdapter mSearchListAdapter;
+    List<User> mSearchedUsers;
 
     private boolean mShouldProgress;
     private ProgressBar mProgressBar;
@@ -42,10 +47,27 @@ public class SearchUserFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mFriendsList = new ArrayList<>();
-        mFriendsAdapter = new FriendsAdapter(mFriendsList, getContext());
+        mSearchedUsers = new ArrayList<>();
+        mSearchListAdapter = new SearchListAdapter(mSearchedUsers, getContext());
         mShouldProgress = true;
+
+        setAdapterListener();
+
         initFirebaseDatabaseAndStorage();
+    }
+
+    private void setAdapterListener() {
+        mSearchListAdapter.setSearchItemClickListener(new SearchListAdapter.SearchItemClickListener() {
+            @Override
+            public void onItemClick(View itemView, int position) {
+                User user = mSearchListAdapter.getItem(position);
+                Toast.makeText(getContext(), user.getFullName(),
+                        Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), UserProfileActivity.class);
+                intent.putExtra(AppConstants.PROFILE_USER, user);
+                startActivity(intent);
+            }
+        });
     }
 
     @Nullable
@@ -87,13 +109,16 @@ public class SearchUserFragment extends Fragment {
 
                     hideProgress();
 
-                    Friend friend = new Friend(
+                    User loadedUser = new User(
                             dataSnapshot.child("userName").getValue().toString(),
+                            dataSnapshot.child("email").getValue().toString(),
+                            dataSnapshot.child("fullName").getValue().toString(),
+                            dataSnapshot.child("uid").getValue().toString(),
                             dataSnapshot.child("photoUrl").getValue().toString(),
                             dataSnapshot.child("isOnline").getValue().toString().equals("true"));
 
-                    mFriendsList.add(friend);
-                    mFriendsAdapter.notifyDataSetChanged();
+                    mSearchedUsers.add(loadedUser);
+                    mSearchListAdapter.notifyDataSetChanged();
                 }
 
                 @Override
@@ -117,20 +142,29 @@ public class SearchUserFragment extends Fragment {
                 }
             };
         }
-
-        mFirebaseDatabaseReference.addChildEventListener(mChildEventListener);
     }
 
     public void setRecyclerViewAdapter(View view) {
+        RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(getContext(),
+                DividerItemDecoration.VERTICAL);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_fragment_search_user);
-        recyclerView.setAdapter(mFriendsAdapter);
+        recyclerView.setAdapter(mSearchListAdapter);
+        recyclerView.addItemDecoration(itemDecoration);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        mFriendsList.clear();
-        mFriendsAdapter.notifyDataSetChanged();
+    public void onStop() {
+        super.onStop();
+        mSearchedUsers.clear();
+        mSearchListAdapter.notifyDataSetChanged();
+        if (mChildEventListener != null)
+            mFirebaseDatabaseReference.removeEventListener(mChildEventListener);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mFirebaseDatabaseReference.addChildEventListener(mChildEventListener);
     }
 }

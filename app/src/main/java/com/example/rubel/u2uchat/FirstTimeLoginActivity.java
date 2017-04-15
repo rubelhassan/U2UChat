@@ -1,8 +1,8 @@
 package com.example.rubel.u2uchat;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -22,21 +22,17 @@ import com.google.firebase.database.ValueEventListener;
 public class FirstTimeLoginActivity extends AppCompatActivity implements View.OnClickListener {
 
 
+    private static String USER_THUMB_URL = "https://firebasestorage.googleapis.com/v0/b/u2u-chat.appspot.com/o/default_user_pic.png?alt=media&token=fe979015-b0f4-4f18-96f3-9163d0b78574";
+    FirebaseAuth mAuth;
     private EditText mEditTextUserName;
     private EditText mEditTextFullName;
     private Button btnEnter;
-
-
-    FirebaseAuth mAuth;
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mFirebaseDatabaseReference;
     private FirebaseUser mFirebaseUser;
     private DatabaseReference mUserNamesDatabase;
     private DatabaseReference mUsersDatabase;
     private ChildEventListener mUsersChildListener;
-
-    private static String USER_THUMB_URL = "https://firebasestorage.googleapis.com/v0/b/u2u-chat.appspot.com/o/default_user_pic.png?alt=media&token=fe979015-b0f4-4f18-96f3-9163d0b78574";
-
     private boolean mUserExists;
 
     @Override
@@ -150,7 +146,7 @@ public class FirstTimeLoginActivity extends AppCompatActivity implements View.On
         mUsersChildListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                // user profile set successfull
+                // user profile set successful
                 if(dataSnapshot != null) {
                     startActivity(new Intent(FirstTimeLoginActivity.this, MainActivity.class));
                     finish();

@@ -1,10 +1,12 @@
 package com.example.rubel.u2uchat.model;
 
+import java.io.Serializable;
+
 /**
  * Created by rubel on 4/6/2017.
  */
 
-public class User {
+public class User implements Serializable {
     String userName;
     String email;
     String fullName;

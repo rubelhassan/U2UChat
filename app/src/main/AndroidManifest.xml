@@ -25,6 +25,9 @@
         <activity android:name=".ForgetPasswordActivity" />
         <activity android:name=".FirstTimeLoginActivity"
             android:theme="@style/LoginTheme" />
+        <activity
+            android:name=".UserProfileActivity"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>
