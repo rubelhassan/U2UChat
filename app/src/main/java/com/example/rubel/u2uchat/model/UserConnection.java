@@ -9,12 +9,12 @@ public class UserConnection {
     private String messageId;
     private String senderId;
     private String lastMessage;
-    private String timestamps;
+    private long timestamps;
     private String photoUrl;
     private boolean isOnline;
 
     public UserConnection(String name, String messageId, String senderId, String lastMessage,
-                          String timestamps, String photoUrl, boolean isOnline) {
+                          long timestamps, String photoUrl, boolean isOnline) {
         this.name = name;
         this.messageId = messageId;
         this.senderId = senderId;
@@ -56,11 +56,11 @@ public class UserConnection {
         this.lastMessage = lastMessage;
     }
 
-    public String getTimestamps() {
+    public long getTimestamps() {
         return timestamps;
     }
 
-    public void setTimestamps(String timstamps) {
+    public void setTimestamps(long timstamps) {
         this.timestamps = timstamps;
     }
 

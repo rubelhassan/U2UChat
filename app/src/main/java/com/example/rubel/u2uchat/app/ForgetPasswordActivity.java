@@ -1,7 +1,9 @@
-package com.example.rubel.u2uchat;
+package com.example.rubel.u2uchat.app;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+
+import com.example.rubel.u2uchat.R;
 
 public class ForgetPasswordActivity extends AppCompatActivity {
 

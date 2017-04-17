@@ -148,7 +148,7 @@ public class ChatFragment extends Fragment {
                 dataSnapshot.child("messageId").getValue().toString(),
                 dataSnapshot.child("senderId").getValue().toString(),
                 dataSnapshot.child("lastMessage").getValue().toString(),
-                dataSnapshot.child("timestamps").getValue().toString(),
+                Long.valueOf(dataSnapshot.child("timestamps").getValue().toString()),
                 dataSnapshot.child("photoUrl").getValue().toString(),
                 trackOnline);
 

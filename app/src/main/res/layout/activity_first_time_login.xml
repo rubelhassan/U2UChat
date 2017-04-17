@@ -3,16 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:orientation="vertical"
     android:background="@color/colorPrimary"
-    tools:context="com.example.rubel.u2uchat.FirstTimeLoginActivity">
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context="com.example.rubel.u2uchat.app.FirstTimeLoginActivity">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome to U2U Chat"
         android:layout_gravity="center_horizontal"
+        android:text="Welcome to U2U Chat"
         android:textAppearance="?android:textAppearanceLargeInverse"
         android:textColor="@android:color/holo_blue_light"
         android:textStyle="bold"/>
@@ -20,9 +20,9 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Set Your Profile"
         android:layout_gravity="center_horizontal"
         android:padding="8dp"
+        android:text="Set Your Profile"
         android:textAppearance="?android:textAppearanceMedium"
         android:textColor="@android:color/white"
         android:textStyle="bold"/>

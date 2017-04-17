@@ -55,7 +55,7 @@ public class ChatsListAdapter extends RecyclerView.Adapter<ChatsListAdapter.Chat
 
         holder.getTvSenderName().setText(connection.getName());
         holder.getTvLastMessage().setText(connection.getLastMessage());
-        holder.getTvTimestamps().setText(connection.getTimestamps());
+        holder.getTvTimestamps().setText(Long.toString(connection.getTimestamps()));
     }
 
     @Override

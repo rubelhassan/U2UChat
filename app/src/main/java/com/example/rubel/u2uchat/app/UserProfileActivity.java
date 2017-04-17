@@ -1,5 +1,6 @@
-package com.example.rubel.u2uchat;
+package com.example.rubel.u2uchat.app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -11,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.rubel.u2uchat.R;
 import com.example.rubel.u2uchat.Util.AppConstants;
 import com.example.rubel.u2uchat.model.User;
 
@@ -79,7 +81,9 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
     public void onClick(View v) {
         if (v.getId() == R.id.image_button_profile_chat) {
             Snackbar.make(v, "chat button pressed", Snackbar.LENGTH_SHORT).show();
-            // TODO launch chat activity
+            Intent intent = new Intent(UserProfileActivity.this, ChatActivity.class);
+            intent.putExtra(AppConstants.CHAT_ACTIVITY_RECEIVER, mUser);
+            startActivity(intent);
         }
     }
 }

@@ -5,7 +5,7 @@
     android:id="@+id/drawer_layout_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.rubel.u2uchat.MainActivity">
+    tools:context="com.example.rubel.u2uchat.app.MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"

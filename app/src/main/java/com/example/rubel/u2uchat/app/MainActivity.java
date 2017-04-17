@@ -1,6 +1,7 @@
-package com.example.rubel.u2uchat;
+package com.example.rubel.u2uchat.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,6 +21,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.rubel.u2uchat.R;
+import com.example.rubel.u2uchat.Util.AppConstants;
 import com.example.rubel.u2uchat.Util.AppUtils;
 import com.example.rubel.u2uchat.adapter.FeaturesPagerAdapter;
 import com.example.rubel.u2uchat.fragments.ChatFragment;
@@ -36,6 +39,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -251,6 +255,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mAppUser = new User(userName, email, fullName, uid, photoUrl, isOnline);
 
         setAppUserProfile();
+
+        setUserToPreference();
+    }
+
+    private void setUserToPreference() {
+        SharedPreferences sharedPreferences = getSharedPreferences(AppConstants.APP_PREFERENCE,
+                MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String userString = gson.toJson(mAppUser, User.class);
+        editor.putString(AppConstants.APP_USER, userString);
+        editor.apply();
     }
 
     @Override
@@ -293,5 +309,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         return false;
+    }
+
+    public User getmAppUser() {
+        return this.mAppUser;
     }
 }

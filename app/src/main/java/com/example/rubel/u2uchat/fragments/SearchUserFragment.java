@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,10 +15,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.rubel.u2uchat.R;
-import com.example.rubel.u2uchat.UserProfileActivity;
 import com.example.rubel.u2uchat.Util.AppConstants;
 import com.example.rubel.u2uchat.adapter.SearchListAdapter;
+import com.example.rubel.u2uchat.app.UserProfileActivity;
 import com.example.rubel.u2uchat.model.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,6 +46,7 @@ public class SearchUserFragment extends Fragment {
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mFirebaseDatabaseReference;
     private ChildEventListener mChildEventListener;
+    private FirebaseUser mCurrentAppUser;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,9 +55,19 @@ public class SearchUserFragment extends Fragment {
         mSearchListAdapter = new SearchListAdapter(mSearchedUsers, getContext());
         mShouldProgress = true;
 
+        setCurrentAppUser();
+
         setAdapterListener();
 
         initFirebaseDatabaseAndStorage();
+    }
+
+    private void setCurrentAppUser() {
+        mCurrentAppUser = FirebaseAuth.getInstance().getCurrentUser();
+        Log.i("USER:", mCurrentAppUser.getUid());
+        if (mCurrentAppUser == null) {
+            // TODO
+        }
     }
 
     private void setAdapterListener() {
@@ -117,8 +131,10 @@ public class SearchUserFragment extends Fragment {
                             dataSnapshot.child("photoUrl").getValue().toString(),
                             dataSnapshot.child("isOnline").getValue().toString().equals("true"));
 
-                    mSearchedUsers.add(loadedUser);
-                    mSearchListAdapter.notifyDataSetChanged();
+                    if (!loadedUser.getUid().equals(mCurrentAppUser.getUid())) {
+                        mSearchedUsers.add(loadedUser);
+                        mSearchListAdapter.notifyDataSetChanged();
+                    }
                 }
 
                 @Override
