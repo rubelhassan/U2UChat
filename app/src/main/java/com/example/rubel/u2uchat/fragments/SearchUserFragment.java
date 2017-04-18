@@ -116,48 +116,46 @@ public class SearchUserFragment extends Fragment {
     }
 
     private void attachDatabaseListener() {
-        if (mChildEventListener == null) {
-            mChildEventListener = new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+        mChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
-                    hideProgress();
+                hideProgress();
 
-                    User loadedUser = new User(
-                            dataSnapshot.child("userName").getValue().toString(),
-                            dataSnapshot.child("email").getValue().toString(),
-                            dataSnapshot.child("fullName").getValue().toString(),
-                            dataSnapshot.child("uid").getValue().toString(),
-                            dataSnapshot.child("photoUrl").getValue().toString(),
-                            dataSnapshot.child("isOnline").getValue().toString().equals("true"));
+                User loadedUser = new User(
+                        dataSnapshot.child("userName").getValue().toString(),
+                        dataSnapshot.child("email").getValue().toString(),
+                        dataSnapshot.child("fullName").getValue().toString(),
+                        dataSnapshot.child("uid").getValue().toString(),
+                        dataSnapshot.child("photoUrl").getValue().toString(),
+                        dataSnapshot.child("isOnline").getValue().toString().equals("true"));
 
-                    if (!loadedUser.getUid().equals(mCurrentAppUser.getUid())) {
-                        mSearchedUsers.add(loadedUser);
-                        mSearchListAdapter.notifyDataSetChanged();
-                    }
+                if (!loadedUser.getUid().equals(mCurrentAppUser.getUid())) {
+                    mSearchedUsers.add(loadedUser);
+                    mSearchListAdapter.notifyDataSetChanged();
                 }
+            }
 
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-                }
+            }
 
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-                }
+            }
 
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
-                }
+            }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
-                }
-            };
-        }
+            }
+        };
     }
 
     public void setRecyclerViewAdapter(View view) {
@@ -170,17 +168,17 @@ public class SearchUserFragment extends Fragment {
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onPause() {
+        super.onPause();
         mSearchedUsers.clear();
         mSearchListAdapter.notifyDataSetChanged();
-        if (mChildEventListener != null)
+        if (mFirebaseDatabaseReference != null)
             mFirebaseDatabaseReference.removeEventListener(mChildEventListener);
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onResume() {
+        super.onResume();
         mFirebaseDatabaseReference.addChildEventListener(mChildEventListener);
     }
 }

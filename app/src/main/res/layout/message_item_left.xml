@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_toEndOf="@id/image_view_message_sender"
-        android:background="@drawable/message_item_shape"
+        android:background="@drawable/message_item_shape_blue"
         android:padding="8dp"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
         android:textColor="@color/tabColor"

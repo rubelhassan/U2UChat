@@ -93,19 +93,19 @@ public class ChatFragment extends Fragment {
         if (mChildEventListener == null) {
             mChildEventListener = new ChildEventListener() {
                 @Override
-                public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
+                public void onChildAdded(final DataSnapshot lastMessageSnapshot, String s) {
 
+                    Log.i("LOG_DATA", lastMessageSnapshot.getKey() + " -- " + lastMessageSnapshot.toString());
                     // check if connection is online then proceed
                     mFirebaseDatabase.getReference().child("users")
-                            .child(dataSnapshot.child("senderId").getValue().toString())
+                            .child(lastMessageSnapshot.getKey())
                             .child("isOnline")
                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnap) {
                                     trackOnline = dataSnap.getValue().toString().equals("true");
                                     Log.i("IS_ONLINE:", dataSnap.toString());
-
-                                    addConnectionToRecyclerList(dataSnapshot);
+                                    addConnectionToRecyclerList(lastMessageSnapshot, lastMessageSnapshot.getKey());
                                 }
 
                                 @Override
@@ -138,18 +138,21 @@ public class ChatFragment extends Fragment {
                 }
             };
         }
-
-        mFirebaseDatabaseReference.addChildEventListener(mChildEventListener);
     }
 
-    private void addConnectionToRecyclerList(DataSnapshot dataSnapshot) {
+    private void addConnectionToRecyclerList(DataSnapshot lastMessageSnapshot, String connectionKey) {
+        String message = lastMessageSnapshot.child("lastMessage").getValue().toString();
+        if (!lastMessageSnapshot.child("senderId").getValue().toString()
+                .equals(connectionKey))
+            message = "You:" + message;
+
         UserConnection connection = new UserConnection(
-                dataSnapshot.child("name").getValue().toString(),
-                dataSnapshot.child("messageId").getValue().toString(),
-                dataSnapshot.child("senderId").getValue().toString(),
-                dataSnapshot.child("lastMessage").getValue().toString(),
-                Long.valueOf(dataSnapshot.child("timestamps").getValue().toString()),
-                dataSnapshot.child("photoUrl").getValue().toString(),
+                lastMessageSnapshot.child("name").getValue().toString(),
+                lastMessageSnapshot.child("messageId").getValue().toString(),
+                lastMessageSnapshot.child("senderId").getValue().toString(),
+                message,
+                Long.valueOf(lastMessageSnapshot.child("timestamps").getValue().toString()),
+                lastMessageSnapshot.child("photoUrl").getValue().toString(),
                 trackOnline);
 
         mUserConnections.add(connection);
@@ -164,6 +167,21 @@ public class ChatFragment extends Fragment {
     private void initFirebaseDatabaseAndStorage() {
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mFirebaseDatabaseReference = mFirebaseDatabase.getReference().child("users_connections")
-                .child(mFirebaseUser.getUid() + "/");
+                .child(mFirebaseUser.getUid());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mUserConnections.clear();
+        mConnectionAdapter.notifyDataSetChanged();
+        if (mFirebaseDatabaseReference != null)
+            mFirebaseDatabaseReference.removeEventListener(mChildEventListener);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mFirebaseDatabaseReference.addChildEventListener(mChildEventListener);
     }
 }

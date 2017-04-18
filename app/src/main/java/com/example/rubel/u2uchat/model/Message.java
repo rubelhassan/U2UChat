@@ -1,29 +1,34 @@
 package com.example.rubel.u2uchat.model;
 
-import com.google.firebase.database.IgnoreExtraProperties;
-
 /**
  * Created by rubel on 4/18/2017.
  */
 
-@IgnoreExtraProperties
+
 public class Message {
 
     String content;
     String sender;
     String receiver;
-    boolean isText;
-    boolean isLeft;
+    boolean text;
+    boolean left;
     long timestamps;
 
-    public Message(String content, String sender, String receiver, boolean isText, boolean isLeft,
-                   long timestamps) {
+    public Message(String content, String sender, String receiver, boolean text, boolean left, long timestamps) {
         this.content = content;
         this.sender = sender;
         this.receiver = receiver;
-        this.isText = isText;
-        this.isLeft = isLeft;
+        this.text = text;
+        this.left = left;
         this.timestamps = timestamps;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public String getSender() {
@@ -43,27 +48,19 @@ public class Message {
     }
 
     public boolean isText() {
-        return isText;
+        return text;
     }
 
     public void setText(boolean text) {
-        isText = text;
+        this.text = text;
     }
 
     public boolean isLeft() {
-        return isLeft;
+        return left;
     }
 
     public void setLeft(boolean left) {
-        isLeft = left;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
+        this.left = left;
     }
 
     public long getTimestamps() {

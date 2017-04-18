@@ -141,6 +141,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         FirebaseUser user = firebaseAuth.getCurrentUser();
         if(user != null){
             // user already signed in
+            mAuth.removeAuthStateListener(this);
             startActivity(new Intent(SignInActivity.this, MainActivity.class));
             finish();
         }

@@ -29,4 +29,5 @@ public class FeaturesPagerAdapter extends FragmentStatePagerAdapter {
     public int getCount() {
         return appFragments.size();
     }
+
 }

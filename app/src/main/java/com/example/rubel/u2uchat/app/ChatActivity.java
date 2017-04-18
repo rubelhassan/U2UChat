@@ -87,7 +87,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                             dataSnapshot.child("content").getValue().toString(),
                             dataSnapshot.child("sender").getValue().toString(),
                             dataSnapshot.child("receiver").getValue().toString(),
-                            dataSnapshot.child("isText").getValue().toString().equals("true"),
+                            dataSnapshot.child("text").getValue().toString().equals("true"),
                             dataSnapshot.child("sender").getValue().toString().equals(mUserReceiver.getUid()),
                             Long.valueOf(dataSnapshot.child("timestamps").getValue().toString()));
                     mMessageList.add(message);
@@ -121,9 +121,9 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         messageId = getMessageId();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mSenderMessageReference = mFirebaseDatabase.getReference().child("users_connections")
-                .child(mCurrentUser.getUid() + "/");
+                .child(mCurrentUser.getUid());
         mReceiverMessageReference = mFirebaseDatabase.getReference().child("users_connections")
-                .child(mUserReceiver.getUid() + "/");
+                .child(mUserReceiver.getUid());
         mGlobalMessageReference = mFirebaseDatabase.getReference().child("messages")
                 .child(messageId);
     }
@@ -185,12 +185,16 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
             long time = System.currentTimeMillis();
             Message message = new Message(content, mCurrentUser.getUid(), mUserReceiver.getUid(),
                     true, false, time);
-            UserConnection userConnection = new UserConnection(mCurrentUser.getFullName(), messageId,
+            UserConnection senderConnection = new UserConnection(mCurrentUser.getFullName(), messageId,
                     mCurrentUser.getUid(), content, time, mCurrentUser.getPhotoUrl(), false);
 
+            UserConnection receiverConnection = new UserConnection(mUserReceiver.getFullName(), messageId,
+                    mCurrentUser.getUid(), content, time, mUserReceiver.getPhotoUrl(), false);
+
             mGlobalMessageReference.push().setValue(message);
-            mSenderMessageReference.child(mUserReceiver.getUid()).setValue(userConnection);
-            mReceiverMessageReference.child(mCurrentUser.getUid()).setValue(userConnection);
+
+            mSenderMessageReference.child(mUserReceiver.getUid()).setValue(receiverConnection);
+            mReceiverMessageReference.child(mCurrentUser.getUid()).setValue(senderConnection);
 
             mEditTextMessage.setText(null);
         }

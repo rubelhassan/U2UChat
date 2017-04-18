@@ -14,7 +14,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -67,8 +66,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private FirebaseAuth.AuthStateListener mFirebaseAuthStateListener;
     private FirebaseUser mFirebaseUser;
 
-    private String mAuthProvider;
-
     private List<Fragment> appFragments;
 
     private User mAppUser;
@@ -103,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void checkInternetConnection() {
         if (!AppUtils.isConnectedToIntenet(this)) {
-            Toast.makeText(this, "No intenet connection!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No internet connection!", Toast.LENGTH_LONG).show();
             finish();
         }
     }
@@ -113,9 +110,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
-        mAuthProvider = mFirebaseUser.getProviderData().get(0).toString();
-
-        Log.i("PROVIDER:", mAuthProvider);
     }
 
     private void verifyLoginUser() {
@@ -129,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initFirebaseDatabaseAndStorage() {
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mFirebaseDatabaseReference = mFirebaseDatabase.getReference().child("users")
-                .child(mFirebaseUser.getUid() + "/");
+                .child(mFirebaseUser.getUid());
         mFirebaseStorage = FirebaseStorage.getInstance();
         mPhotoStorageReference = mFirebaseStorage.getReference().child("user_photos");
     }
@@ -313,5 +307,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public User getmAppUser() {
         return this.mAppUser;
+    }
+
+    private void activityCleanup() {
+        if (mFirebaseAuth != null)
+            mFirebaseAuth.removeAuthStateListener(mFirebaseAuthStateListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        activityCleanup();
     }
 }
