@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/item_android"
+        android:checkable="true"
+        android:title="Profile" />
+
+    <item
+        android:id="@+id/item_ios"
+        android:checkable="true"
+        android:title="Friends" />
+
+    <item
+        android:id="@+id/item_windows"
+        android:checkable="true"
+        android:title="Settings" />
+</menu>

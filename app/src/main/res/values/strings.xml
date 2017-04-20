@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">U2U Chat</string>
+
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+    <string name="email_hint">email</string>
+    <string name="password_hint">password</string>
 </resources>

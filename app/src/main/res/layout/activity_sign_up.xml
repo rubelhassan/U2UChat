@@ -3,35 +3,38 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.rubel.u2uchat.SignUpActivity">
+    tools:context="com.example.rubel.u2uchat.app.SignUpActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:background="@drawable/background_gradiant"
         android:gravity="center"
-        android:background="@color/colorPrimary"
+        android:orientation="vertical"
         android:padding="16dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:textAppearanceLarge"
+            android:layout_marginBottom="16dp"
             android:text="U2U Chat"
-            android:textColor="@android:color/holo_blue_bright"
-            android:layout_marginBottom="16dp"/>
+            android:textAppearance="?android:textAppearanceLarge"
+            android:textColor="@android:color/white" />
 
         <ImageView
             android:id="@+id/image_view_logo"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_chat_black_48dp"
             android:contentDescription="chat logo"
-            android:tint="@android:color/holo_blue_bright"/>
+            android:src="@drawable/ic_chat_black_48dp"
+            android:tint="@color/colorAccent" />
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:textColorHint="@android:color/white">
 
             <EditText
                 android:id="@+id/edit_text_email_sign_up"
@@ -40,14 +43,18 @@
                 android:layout_marginBottom="10dp"
                 android:hint="email"
                 android:inputType="textEmailAddress"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
                 android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white"/>
+                android:textColorHint="@android:color/white" />
 
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:textColorHint="@android:color/white">
 
             <EditText
                 android:id="@+id/edit_text_password_sign_up"
@@ -56,14 +63,18 @@
                 android:layout_marginBottom="10dp"
                 android:hint="password"
                 android:inputType="textPassword"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
                 android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white"/>
+                android:textColorHint="@android:color/white" />
 
         </android.support.design.widget.TextInputLayout>
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:textColorHint="@android:color/white">
 
             <EditText
                 android:id="@+id/edit_text_password_confirm_sign_up"
@@ -72,8 +83,9 @@
                 android:layout_marginBottom="10dp"
                 android:hint="confirm password"
                 android:inputType="textPassword"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
                 android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white"/>
+                android:textColorHint="@android:color/white" />
 
         </android.support.design.widget.TextInputLayout>
 
@@ -81,8 +93,12 @@
             android:id="@+id/btn_signup_up"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             android:background="@color/colorAccent"
-            android:text="Sing up"/>
+            android:text="Sign up"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 
@@ -92,5 +108,5 @@
         android:layout_height="30dp"
         android:layout_centerInParent="true"
         android:layout_marginBottom="20dp"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 </RelativeLayout>

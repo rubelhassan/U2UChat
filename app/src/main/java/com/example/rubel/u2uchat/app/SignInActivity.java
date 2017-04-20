@@ -1,17 +1,16 @@
-package com.example.rubel.u2uchat;
+package com.example.rubel.u2uchat.app;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
+import com.example.rubel.u2uchat.R;
 import com.example.rubel.u2uchat.Util.AppUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -142,6 +141,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         FirebaseUser user = firebaseAuth.getCurrentUser();
         if(user != null){
             // user already signed in
+            mAuth.removeAuthStateListener(this);
             startActivity(new Intent(SignInActivity.this, MainActivity.class));
             finish();
         }

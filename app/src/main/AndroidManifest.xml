@@ -8,10 +8,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity" />
+        android:theme="@style/LoginTheme">
+        <activity android:name=".app.MainActivity" />
         <activity
-            android:name=".SignInActivity"
+            android:name=".app.SignInActivity"
             android:theme="@style/LoginTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,10 +20,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SignUpActivity"
+            android:name=".app.SignUpActivity"
             android:theme="@style/LoginTheme" />
-        <activity android:name=".ForgetPasswordActivity" />
-        <activity android:name=".FirstTimeLoginActivity"
+        <activity android:name=".app.ForgetPasswordActivity" />
+        <activity
+            android:name=".app.FirstTimeLoginActivity"
+            android:theme="@style/LoginTheme" />
+        <activity
+            android:name=".app.UserProfileActivity"
+            android:parentActivityName=".app.MainActivity" />
+        <activity
+            android:name=".app.ChatActivity"
             android:theme="@style/LoginTheme" />
     </application>
 
