@@ -79,4 +79,6 @@ public class UserConnection {
     public void setOnline(boolean online) {
         isOnline = online;
     }
+
+
 }

@@ -84,6 +84,7 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
             Intent intent = new Intent(UserProfileActivity.this, ChatActivity.class);
             intent.putExtra(AppConstants.CHAT_ACTIVITY_RECEIVER, mUser);
             startActivity(intent);
+            finish();
         }
     }
 }

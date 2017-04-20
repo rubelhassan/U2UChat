@@ -10,7 +10,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.example.rubel.u2uchat.R;
@@ -30,6 +29,9 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
+import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
+import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
+
 /**
  * Created by rubel on 4/17/2017.
  */
@@ -44,7 +46,9 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     RecyclerView mRecyclerView;
     ImageButton mImageButtonEmoji;
     ImageButton mImageButtonSend;
-    EditText mEditTextMessage;
+    EmojiconEditText mEditTextMessage;
+    EmojIconActions mEmojIcon;
+    View mRootView;
 
     MessageListAdapter mMessageListAdapter;
     List<Message> mMessageList;
@@ -92,6 +96,7 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
                             Long.valueOf(dataSnapshot.child("timestamps").getValue().toString()));
                     mMessageList.add(message);
                     mMessageListAdapter.notifyDataSetChanged();
+                    mRecyclerView.smoothScrollToPosition(mMessageListAdapter.getItemCount());
                 }
             }
 
@@ -159,11 +164,15 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initViews() {
+        mRootView = findViewById(R.id.root_layout_chat);
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view_chat);
-        mEditTextMessage = (EditText) findViewById(R.id.edit_text_chat_content);
+        mEditTextMessage = (EmojiconEditText) findViewById(R.id.edit_text_chat_content);
         mImageButtonEmoji = (ImageButton) findViewById(R.id.image_button_chat_emoicon);
         mImageButtonSend = (ImageButton) findViewById(R.id.image_button_chat_send);
         mImageButtonSend.setOnClickListener(this);
+        mEmojIcon = new EmojIconActions(this, mRootView, mEditTextMessage, mImageButtonEmoji);
+        mEmojIcon.setIconsIds(R.drawable.keyboard, R.drawable.emoticon);
+        mEmojIcon.ShowEmojIcon();
     }
 
     private void initReceiverUser() {

@@ -1,5 +1,6 @@
 package com.example.rubel.u2uchat.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,10 +11,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.example.rubel.u2uchat.R;
+import com.example.rubel.u2uchat.Util.AppConstants;
 import com.example.rubel.u2uchat.adapter.ChatsListAdapter;
+import com.example.rubel.u2uchat.app.ChatActivity;
+import com.example.rubel.u2uchat.model.User;
 import com.example.rubel.u2uchat.model.UserConnection;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,6 +38,7 @@ public class ChatFragment extends Fragment {
 
     ChatsListAdapter mConnectionAdapter;
     List<UserConnection> mUserConnections;
+    List<String> mConnectionsUid;
 
     //Firebase API Clients
     private FirebaseDatabase mFirebaseDatabase;
@@ -49,6 +53,7 @@ public class ChatFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mUserConnections = new ArrayList<>();
+        mConnectionsUid = new ArrayList<>();
         mConnectionAdapter = new ChatsListAdapter(mUserConnections, getContext());
 
         setAdapterListener();
@@ -84,9 +89,35 @@ public class ChatFragment extends Fragment {
         mConnectionAdapter.setChatOnItemClickListener(new ChatsListAdapter.ChatOnItemClickListener() {
             @Override
             public void onItemClick(View itemView, int position) {
-                Toast.makeText(getContext(), "Shei Click Hoise", Toast.LENGTH_SHORT).show();
+
+                mFirebaseDatabase.getReference().child("users")
+                        .child(mConnectionsUid.get(position))
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                User user = new User(
+                                        dataSnapshot.child("userName").getValue().toString(),
+                                        dataSnapshot.child("email").getValue().toString(),
+                                        dataSnapshot.child("fullName").getValue().toString(),
+                                        dataSnapshot.child("uid").getValue().toString(),
+                                        dataSnapshot.child("photoUrl").getValue().toString(),
+                                        dataSnapshot.child("isOnline").getValue().toString().equals("true"));
+                                startChatWithUser(user);
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
             }
         });
+    }
+
+    private void startChatWithUser(User user) {
+        Intent intent = new Intent(getActivity(), ChatActivity.class);
+        intent.putExtra(AppConstants.CHAT_ACTIVITY_RECEIVER, user);
+        startActivity(intent);
     }
 
     private void attachDatabaseListener() {
@@ -156,6 +187,7 @@ public class ChatFragment extends Fragment {
                 trackOnline);
 
         mUserConnections.add(connection);
+        mConnectionsUid.add(connectionKey);
         mConnectionAdapter.notifyDataSetChanged();
     }
 

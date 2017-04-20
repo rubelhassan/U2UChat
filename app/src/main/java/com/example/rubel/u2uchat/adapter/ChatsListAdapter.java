@@ -63,6 +63,10 @@ public class ChatsListAdapter extends RecyclerView.Adapter<ChatsListAdapter.Chat
         return mUserConnections.size();
     }
 
+    public UserConnection getItem(int position) {
+        return mUserConnections.get(position);
+    }
+
     // chat item click listener interface
     public interface ChatOnItemClickListener {
         void onItemClick(View itemView, int position);
