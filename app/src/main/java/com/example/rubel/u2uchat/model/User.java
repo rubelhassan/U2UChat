@@ -72,4 +72,9 @@ public class User implements Serializable {
     public void setPhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
     }
+
+    public String getGeoId() {
+        return this.uid + ";" + this.fullName.replaceAll(" ", "*");
+        // TODO add age, sex, and photourl
+    }
 }

@@ -1,12 +1,21 @@
 package com.example.rubel.u2uchat.app;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -14,6 +23,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +39,13 @@ import com.example.rubel.u2uchat.fragments.ContactsFragment;
 import com.example.rubel.u2uchat.fragments.GroupsFragment;
 import com.example.rubel.u2uchat.fragments.SearchUserFragment;
 import com.example.rubel.u2uchat.model.User;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -43,12 +60,16 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
+        , GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_PHOTO_PICKER = 101;
     private static final int REQUEST_SIGN_IN = 102;
     private static final int PERMISSION_READ_EXTERNAL_STORAGE = 103;
+    private static final int PERMISSION_LOCATION = 501;
+    private static final long UPDATE_INTERVAL = 2 * 1000;
+    private static final long FASTED_INTERVAL = 2000;
 
     // UI elements
     DrawerLayout mDrawerLayout;
@@ -56,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ViewPager mViewPager;
     TabLayout mTabLayout;
     Toolbar mToolbar;
-
+    boolean isLocationUpdated;
     // Firebase API Clients
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mFirebaseDatabaseReference;
@@ -65,10 +86,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mFirebaseAuthStateListener;
     private FirebaseUser mFirebaseUser;
-
+    // Google Api Client
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+    private LocationManager mLocationManager;
+    private LocationRequest mLocationRequest;
     private List<Fragment> appFragments;
-
     private User mAppUser;
+    private GeoLocation mGeoLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +103,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
         mToolbar.setTitle("U2U Chat");
         setSupportActionBar(mToolbar);
+
+        mGeoLocation = null;
+
+        isLocationUpdated = false;
 
         checkInternetConnection();
 
@@ -89,6 +118,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         checkFirstTimeLogin();
 
+        initGoogleApiClient();
+
         initAuthStateListener();
 
         makeUserOnline();
@@ -96,6 +127,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setupNavigationView();
 
         setupTabsAndPagers();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mFirebaseAuth.addAuthStateListener(mFirebaseAuthStateListener);
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mFirebaseAuth != null)
+            mFirebaseAuth.removeAuthStateListener(mFirebaseAuthStateListener);
+        stopLocationUpdates();
+        if (mGoogleApiClient != null)
+            mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        activityCleanup();
+    }
+
+    private synchronized void initGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(10 * 1000)
+                .setFastestInterval(1 * 1000);
+
+        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        // TODO make sure at least one of location provider is enabled
     }
 
     private void checkInternetConnection() {
@@ -251,6 +321,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setAppUserProfile();
 
         setUserToPreference();
+
+        if (mGeoLocation != null)
+            updateOnlineUserLocation();
     }
 
     private void setUserToPreference() {
@@ -287,18 +360,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mFirebaseDatabaseReference.child("isOnline").setValue(true);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mFirebaseAuth.addAuthStateListener(mFirebaseAuthStateListener);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mFirebaseAuth != null)
-            mFirebaseAuth.removeAuthStateListener(mFirebaseAuthStateListener);
-    }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -314,9 +375,122 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mFirebaseAuth.removeAuthStateListener(mFirebaseAuthStateListener);
     }
 
+
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        activityCleanup();
+    public void onConnected(@Nullable Bundle bundle) {
+
+        if (checkLocationPermission()) {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+
+        if (mLastLocation == null) {
+            Snackbar.make(mNavigationView, "No location", Snackbar.LENGTH_SHORT).show();
+            startLocationUpdates();
+        }
+
+        if (mLastLocation != null) {
+            Log.i("Locaton:", mLastLocation.toString());
+            Snackbar.make(mNavigationView, "Here: " + mLastLocation.toString(), Snackbar.LENGTH_LONG).show();
+            mGeoLocation = new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            updateOnlineUserLocation();
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+        Log.i("Locaton:", "suspended");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.i("Location:", "Connection failed");
+    }
+
+    private boolean checkLocationPermission() {
+        String coarsePermission = Manifest.permission.ACCESS_COARSE_LOCATION;
+        String finePermission = Manifest.permission.ACCESS_FINE_LOCATION;
+
+        int currentVersion = Build.VERSION.SDK_INT;
+
+        if (currentVersion >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, coarsePermission)
+                    != PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this, finePermission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, coarsePermission) ||
+                        ActivityCompat.shouldShowRequestPermissionRationale(this, finePermission)) {
+                    Snackbar.make(mNavigationView, "Turn on GPS", Snackbar.LENGTH_SHORT).show();
+                    ActivityCompat.requestPermissions(this, new String[]{coarsePermission,
+                            finePermission}, PERMISSION_LOCATION);
+                } else {
+                    ActivityCompat.requestPermissions(this, new String[]{coarsePermission,
+                            finePermission}, PERMISSION_LOCATION);
+                }
+
+                return false;
+            } else {
+                Log.i("Permission:", "granted");
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_LOCATION: {
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Snackbar.make(mNavigationView, "Permission not granted", Snackbar.LENGTH_SHORT).show();
+                }
+            }
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        Snackbar.make(mNavigationView, mLastLocation.toString(), Snackbar.LENGTH_LONG).show();
+        setAppLocation(new GeoLocation(location.getLatitude(), location.getLongitude()));
+        stopLocationUpdates();
+        Log.i("Location:", "changed" + location.toString());
+    }
+
+    private void setAppLocation(GeoLocation geoLocation) {
+        SharedPreferences sharedPreferences = getSharedPreferences(AppConstants.APP_PREFERENCE, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String locationString = gson.toJson(geoLocation, GeoLocation.class);
+        editor.putString(AppConstants.APP_LOCATION, locationString);
+        editor.apply();
+        mGeoLocation = geoLocation;
+        if (!isLocationUpdated)
+            updateOnlineUserLocation();
+    }
+
+    private void updateOnlineUserLocation() {
+        GeoFire geoFire = new GeoFire(mFirebaseDatabase.getReference().child("geofire"));
+
+        if (mAppUser != null && !isLocationUpdated) {
+            geoFire.setLocation(mAppUser.getGeoId(), mGeoLocation);
+            isLocationUpdated = true;
+            Log.i("Location:", "online" + mGeoLocation.toString());
+        }
+    }
+
+    private void startLocationUpdates() {
+        if (checkLocationPermission()) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                    mLocationRequest, this);
+        }
+    }
+
+    private void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 }

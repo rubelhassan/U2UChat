@@ -10,6 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -28,10 +29,12 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.1'
 
     // Support libraries:Design, Recycler View
-    compile 'com.android.support:design:25.2.0'
-    compile 'com.android.support:recyclerview-v7:25.2.0'
+    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:recyclerview-v7:25.3.1'
     compile 'com.google.code.gson:gson:2.7'
 
+    // Play services
+    compile 'com.google.android.gms:play-services:10.2.1'
 
     // Displaying Images
     compile 'com.github.bumptech.glide:glide:3.7.0'
@@ -39,6 +42,9 @@ dependencies {
     // Firebase Database, storage
     compile 'com.google.firebase:firebase-database:10.2.1'
     compile 'com.google.firebase:firebase-storage:10.2.1'
+
+    // GeoFire Android
+    compile 'com.firebase:geofire-android:2.1.1'
 
     // Firebase UI, Auth
     compile 'com.google.firebase:firebase-auth:10.2.1'
@@ -48,6 +54,7 @@ dependencies {
     repositories {
         maven { url 'https://jitpack.io' }
     }
+
     compile 'com.github.hani-momanii:SuperNova-Emoji:1.1'
 
     testCompile 'junit:junit:4.12'

@@ -9,4 +9,5 @@ public class AppConstants {
     public static final String PROFILE_USER = "PROFILE_USER";
     public static final String APP_USER = "APP_USER";
     public static final String CHAT_ACTIVITY_RECEIVER = "CHAT_ACTIVITY_RECEIVER";
+    public static final String APP_LOCATION = "APP_LOCATION";
 }
