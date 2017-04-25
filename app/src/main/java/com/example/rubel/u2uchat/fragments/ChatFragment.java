@@ -100,6 +100,8 @@ public class ChatFragment extends Fragment {
                                         dataSnapshot.child("email").getValue().toString(),
                                         dataSnapshot.child("fullName").getValue().toString(),
                                         dataSnapshot.child("uid").getValue().toString(),
+                                        dataSnapshot.child("sex").getValue().toString(),
+                                        Integer.parseInt(dataSnapshot.child("age").getValue().toString()),
                                         dataSnapshot.child("photoUrl").getValue().toString(),
                                         dataSnapshot.child("isOnline").getValue().toString().equals("true"));
                                 startChatWithUser(user);

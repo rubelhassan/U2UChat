@@ -27,9 +27,40 @@
         android:textColor="@android:color/white"
         android:textStyle="bold" />
 
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/image_view_profile_new"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/male" />
+
+        <ImageButton
+            android:id="@+id/image_button_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_menu_camera" />
+
+        <ImageButton
+            android:id="@+id/image_button_gallary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/image_button_camera"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_menu_gallery" />
+    </RelativeLayout>
+
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:textColorHint="@android:color/white">
 
         <EditText
@@ -47,6 +78,8 @@
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:textColorHint="@android:color/white">
 
         <EditText
@@ -55,16 +88,68 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:hint="full name"
+            android:inputType="textPersonName"
             android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
             android:textColor="@android:color/white"
             android:textColorHint="@android:color/white" />
 
     </android.support.design.widget.TextInputLayout>
 
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:textColorHint="@android:color/white">
+
+        <EditText
+            android:id="@+id/edit_text_email_age_new"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="age"
+            android:inputType="number"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:textColor="@android:color/white"
+            android:textColorHint="@android:color/white" />
+    </android.support.design.widget.TextInputLayout>
+
+    <RadioGroup
+        android:id="@+id/radio_group_sex"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/radio_male"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:checked="true"
+            android:text="Male"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:textColor="@android:color/white" />
+
+        <RadioButton
+            android:id="@+id/radio_female"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Female"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:textColor="@android:color/white" />
+    </RadioGroup>
+
     <Button
         android:id="@+id/btn_go_new"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp"
         android:background="@color/colorAccent"
         android:text="Enter"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"

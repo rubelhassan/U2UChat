@@ -10,4 +10,6 @@ public class AppConstants {
     public static final String APP_USER = "APP_USER";
     public static final String CHAT_ACTIVITY_RECEIVER = "CHAT_ACTIVITY_RECEIVER";
     public static final String APP_LOCATION = "APP_LOCATION";
+    public static final String DEFAULT_PHOTO_URL = "https://firebasestorage.googleapis.com/v0/b/u2u-chat.appspot.com/o/default_user_pic.png?alt=media&token=fe979015-b0f4-4f18-96f3-9163d0b78574";
+
 }

@@ -314,9 +314,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String fullName = dataSnapshot.child("fullName").getValue().toString();
         String uid = dataSnapshot.child("uid").getValue().toString();
         String photoUrl = dataSnapshot.child("photoUrl").getValue().toString();
+        String sex = dataSnapshot.child("sex").getValue().toString();
+        int age = Integer.parseInt(dataSnapshot.child("age").getValue().toString());
         boolean isOnline = dataSnapshot.child("isOnline").getValue().toString().equals("true");
 
-        mAppUser = new User(userName, email, fullName, uid, photoUrl, isOnline);
+        mAppUser = new User(userName, email, fullName, uid, sex, age, photoUrl, isOnline);
 
         setAppUserProfile();
 

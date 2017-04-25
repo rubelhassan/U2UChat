@@ -12,9 +12,14 @@ public class User implements Serializable {
     String fullName;
     String uid;
     String photoUrl;
+    String sex;
+    int age;
     boolean isOnline;
 
-    public User(String userName, String email, String fullName, String uid,
+    public User() {
+    }
+
+    public User(String userName, String email, String fullName, String uid, String sex, int age,
                 String photoUrl, boolean isOnline) {
         this.userName = userName;
         this.email = email;
@@ -22,6 +27,8 @@ public class User implements Serializable {
         this.photoUrl = photoUrl;
         this.isOnline = isOnline;
         this.fullName = fullName;
+        this.sex = sex;
+        this.age = age;
     }
 
     public String getFullName() {
@@ -71,6 +78,22 @@ public class User implements Serializable {
 
     public void setPhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
+    }
+
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 
     public String getGeoId() {

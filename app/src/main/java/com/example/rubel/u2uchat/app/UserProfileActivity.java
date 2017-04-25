@@ -1,11 +1,14 @@
 package com.example.rubel.u2uchat.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -15,6 +18,10 @@ import com.bumptech.glide.Glide;
 import com.example.rubel.u2uchat.R;
 import com.example.rubel.u2uchat.Util.AppConstants;
 import com.example.rubel.u2uchat.model.User;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 /**
  * Created by rubel on 4/15/2017.
@@ -27,6 +34,7 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
     ImageButton mImageButtonChat;
     User mUser;
     Toolbar mToolbar;
+    Uri mPhotoUri;
 
 
     @Override
@@ -58,14 +66,42 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
         mUser = null;
         if (extras != null) {
             mUser = (User) extras.getSerializable(AppConstants.PROFILE_USER);
+            setUpPhotoStorage(mUser.getUid());
             setUserProfile();
         }
     }
 
+    private void setUpPhotoStorage(String uid) {
+        StorageReference mPhotoRef = FirebaseStorage.getInstance()
+                .getReference()
+                .child("images/" + uid);
+
+        mPhotoRef.getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        mPhotoUri = uri;
+                        Log.i("Storage", uri.toString());
+                        renderUserPhoto();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i("Storage", ":OnFailure");
+                        mPhotoUri = Uri.parse(AppConstants.DEFAULT_PHOTO_URL);
+                        renderUserPhoto();
+                    }
+                });
+    }
+
     private void setUserProfile() {
         mTextViewName.setText(mUser.getFullName());
+    }
+
+    private void renderUserPhoto() {
         Glide.with(getApplicationContext())
-                .load(mUser.getPhotoUrl())
+                .load(mPhotoUri)
                 .into(mImageViewProfileThumb);
     }
 
@@ -87,4 +123,6 @@ public class UserProfileActivity extends AppCompatActivity implements View.OnCli
             finish();
         }
     }
+
+
 }
