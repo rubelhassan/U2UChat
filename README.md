@@ -1,6 +1,6 @@
 # U2U Chat App
 
-U2U is firebase base realtime android chat application.
+U2U is firebase based realtime android chat application.
 
 ## Features
 
